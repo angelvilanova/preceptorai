@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [debugInfo, setDebugInfo] = useState('')
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -27,17 +28,20 @@ export default function LoginPage() {
     }
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setError('Erro inesperado. Tente novamente.'); setLoading(false); return }
+    if (!user) { setError('Erro inesperado.'); setLoading(false); return }
 
- const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('status, role')
       .eq('id', user.id)
       .single() as { data: any; error: any }
 
+    // Mostrar debug na tela
+    setDebugInfo(`ID: ${user.id} | Profile: ${JSON.stringify(profile)} | Error: ${profileError?.message}`)
+    setLoading(false)
+
     if (!profile || profile.status !== 'approved') {
-      window.location.href = '/pendente'
-      return
+      return // Não redireciona ainda — mostra o debug
     }
 
     if (profile.role === 'admin') {
@@ -57,6 +61,12 @@ export default function LoginPage() {
         {error && (
           <div className="bg-[#FCEBEB] text-[#791F1F] border border-red-200 rounded-xl px-4 py-3 text-sm mb-5">
             {error}
+          </div>
+        )}
+
+        {debugInfo && (
+          <div className="bg-black text-green-400 rounded-xl p-3 text-xs font-mono mb-5 break-all">
+            {debugInfo}
           </div>
         )}
 
