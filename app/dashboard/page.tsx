@@ -36,6 +36,36 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   },
 ]
 
+const S = {
+  tabBtn: (active: boolean): React.CSSProperties => ({
+    padding: '12px 16px',
+    fontSize: 13,
+    color: active ? '#1a1a1a' : '#666',
+    fontWeight: active ? 600 : 400,
+    background: 'none',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderRight: 'none',
+    borderBottom: active ? '2px solid #E24B4A' : '2px solid transparent',
+    cursor: 'pointer',
+    marginBottom: -1,
+  }),
+  bottomBtn: (active: boolean): React.CSSProperties => ({
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 3,
+    padding: '10px 0',
+    fontSize: 10,
+    fontWeight: 500,
+    color: active ? '#E24B4A' : '#aaa',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+  }),
+}
+
 export default function DashboardPage() {
   const supabase = createClient()
   const [tab, setTab] = useState<Tab>('chat')
@@ -101,12 +131,11 @@ export default function DashboardPage() {
     <AmbienteProvider>
       <div style={{ display:'flex', height:'100vh', background:'#f7f6f3', overflow:'hidden', position:'relative' }}>
 
-        {/* OVERLAY */}
+        {/* OVERLAY mobile */}
         {sidebarOpen && isMobile && (
-          <div
-            onClick={() => setSidebarOpen(false)}
-            style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:20 }}
-          />
+          <div onClick={() => setSidebarOpen(false)} style={{
+            position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:20
+          }} />
         )}
 
         {/* SIDEBAR */}
@@ -115,9 +144,9 @@ export default function DashboardPage() {
           left: isMobile ? (sidebarOpen ? 0 : -280) : 0,
           top: 0,
           width: isMobile ? 280 : 208,
-          minWidth: isMobile ? 280 : 208,
+          minWidth: isMobile ? 'auto' : 208,
           height: '100%',
-          zIndex: isMobile ? 30 : 'auto',
+          zIndex: isMobile ? 30 : 1,
           background: 'white',
           borderRight: '1px solid #e2e0d8',
           display: 'flex',
@@ -125,8 +154,7 @@ export default function DashboardPage() {
           overflow: 'hidden',
           transition: 'left 0.2s ease',
         }}>
-          {/* Brand */}
-          <div style={{ padding:'16px', borderBottom:'1px solid #e2e0d8', flexShrink:0 }}>
+          <div style={{ padding:16, borderBottom:'1px solid #e2e0d8', flexShrink:0 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                 <div style={{ width:32, height:32, background:'#E24B4A', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -135,8 +163,8 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:700, letterSpacing:'-0.3px' }}>PRECEPTOR.AI</div>
-                  <div style={{ fontSize:10, color:'#aaa', marginTop:1 }}>Copiloto de plantão</div>
+                  <div style={{ fontSize:13, fontWeight:700 }}>PRECEPTOR.AI</div>
+                  <div style={{ fontSize:10, color:'#aaa' }}>Copiloto de plantão</div>
                 </div>
               </div>
               {isMobile && (
@@ -149,14 +177,12 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Ambiente */}
           <div style={{ padding:'10px 12px', borderBottom:'1px solid #e2e0d8', flexShrink:0 }}>
             <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:6 }}>Ambiente</div>
             <AmbienteSwitcher />
           </div>
 
-          {/* Quick access */}
-          <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
+          <div style={{ flex:1, overflowY:'auto', padding:8 }}>
             <div style={{ fontSize:10, color:'#bbb', textTransform:'uppercase', letterSpacing:'0.06em', padding:'12px 8px 4px' }}>Acesso rápido</div>
             {PROTOCOLS_QUICK.map(p => (
               <button key={p.id} onClick={() => openQuickProto(p.id)} style={{
@@ -172,7 +198,6 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* User */}
           <div style={{ padding:12, borderTop:'1px solid #e2e0d8', flexShrink:0 }}>
             {profile && (
               <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
@@ -218,19 +243,9 @@ export default function DashboardPage() {
           {!isMobile && (
             <div style={{ display:'flex', borderBottom:'1px solid #e2e0d8', background:'white', padding:'0 16px', flexShrink:0 }}>
               {NAV_ITEMS.map(item => (
-                <button key={item.id} onClick={() => setTab(item.id)} style={{
-  padding:'12px 16px', fontSize:13,
-  color: tab === item.id ? '#1a1a1a' : '#666',
-  fontWeight: tab === item.id ? 600 : 400,
-  borderTop: 'none',
-  borderLeft: 'none',
-  borderRight: 'none',
-  borderBottom: tab === item.id ? '2px solid #E24B4A' : '2px solid transparent',
-  background:'none',
-  cursor:'pointer', marginBottom:-1,
-}}>
-  {item.label}
-</button>
+                <button key={item.id} onClick={() => setTab(item.id)} style={S.tabBtn(tab === item.id)}>
+                  {item.label}
+                </button>
               ))}
             </div>
           )}
@@ -251,12 +266,7 @@ export default function DashboardPage() {
           {isMobile && (
             <nav style={{ display:'flex', borderTop:'1px solid #e2e0d8', background:'white', flexShrink:0 }}>
               {NAV_ITEMS.map(item => (
-                <button key={item.id} onClick={() => setTab(item.id)} style={{
-                  flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-                  padding:'10px 0', fontSize:10, fontWeight:500,
-                  color: tab === item.id ? '#E24B4A' : '#aaa',
-                  background:'none', border:'none', cursor:'pointer',
-                }}>
+                <button key={item.id} onClick={() => setTab(item.id)} style={S.bottomBtn(tab === item.id)}>
                   {item.icon}
                   {item.label}
                 </button>
