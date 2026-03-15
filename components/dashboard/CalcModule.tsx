@@ -1,9 +1,39 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function CalcModule() {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [showScrollHint, setShowScrollHint] = useState(false)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+
+    const evaluate = () => {
+      const canScroll = el.scrollHeight - el.clientHeight > 64
+      const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 32
+      setShowScrollHint(canScroll && !nearBottom && el.scrollTop < 40)
+    }
+
+    evaluate()
+    el.addEventListener('scroll', evaluate, { passive: true })
+    window.addEventListener('resize', evaluate)
+
+    return () => {
+      el.removeEventListener('scroll', evaluate)
+      window.removeEventListener('resize', evaluate)
+    }
+  }, [])
+
   return (
-    <div className="overflow-y-auto p-4 flex flex-col gap-4">
+    <div ref={scrollRef} className="relative overflow-y-auto p-4 flex flex-col gap-4 pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+      {showScrollHint && (
+        <div className="sticky bottom-2 self-center z-10 pointer-events-none">
+          <div className="rounded-full border border-[#e2e0d8] bg-white/95 px-3 py-1 text-[11px] font-medium text-[#666] shadow-sm backdrop-blur-sm">
+            ↓ Role para ver mais calculadoras
+          </div>
+        </div>
+      )}
       <VasoCalc />
       <SedacaoCalc />
       <InsulinaCalc />
