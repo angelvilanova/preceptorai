@@ -5,7 +5,6 @@ import { ChatModule } from '@/components/dashboard/ChatModule'
 import { CalcModule } from '@/components/dashboard/CalcModule'
 import { ProtocolsModule } from '@/components/dashboard/ProtocolsModule'
 import { AmbienteProvider, AmbienteSwitcher } from '@/components/AmbienteContext'
-import type { Profile } from '@/types'
 
 type Tab = 'chat' | 'calc' | 'proto'
 
@@ -31,7 +30,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 export default function DashboardPage() {
   const supabase = createClient()
   const [tab, setTab] = useState<Tab>('chat')
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [checking, setChecking] = useState(true)
   const [quickProto, setQuickProto] = useState<string | null>(null)
 
@@ -44,23 +43,23 @@ export default function DashboardPage() {
         return
       }
 
-      const { data: profile, error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .single() as { data: any; error: any }
 
-      if (error || !profile) {
+      if (error || !data) {
         window.location.href = '/pendente'
         return
       }
 
-      if (profile.status !== 'approved') {
+      if (data.status !== 'approved') {
         window.location.href = '/pendente'
         return
       }
 
-      setProfile(profile)
+      setProfile(data)
       setChecking(false)
     }
     check()

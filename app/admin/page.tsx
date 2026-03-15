@@ -14,14 +14,16 @@ export default function AdminPage() {
     async function checkAdmin() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/login'; return }
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('role, status')
+  .eq('id', user.id)
+  .single() as { data: { role: string; status: string } | null }
 
-      const { data: profile } = await supabase
-        .from('profiles').select('role, status').eq('id', user.id).single()
-
-      if (!profile || profile.role !== 'admin') {
-        window.location.href = '/dashboard'
-        return
-      }
+if (!profile || profile.role !== 'admin') {
+  window.location.href = '/dashboard'
+  return
+}
       setChecking(false)
       loadProfiles('pending')
     }
