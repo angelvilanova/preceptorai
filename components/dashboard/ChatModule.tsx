@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { parseLocal } from '@/lib/clinicalKB'
-import type { Ambiente } from '@/lib/protocols'
+import { useAmbiente } from '@/components/AmbienteContext'
 
 interface Message { role: 'user' | 'ai'; text: string }
 
@@ -14,7 +14,8 @@ const QUICK = [
   'AVC isquêmico',
 ]
 
-export function ChatModule({ ambiente }: { ambiente: Ambiente }) {
+export function ChatModule() {
+  const { ambiente } = useAmbiente()
   const [messages, setMessages] = useState<Message[]>([
     { role: 'ai', text: 'Olá. Escreva sua dúvida diretamente.\n\nExemplos: **dose adrenalina**, **noradrenalina 70kg**, **midazolam intubação 80kg**, **conduta sepse**' }
   ])

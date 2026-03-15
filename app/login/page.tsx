@@ -29,11 +29,11 @@ export default function LoginPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('Erro inesperado. Tente novamente.'); setLoading(false); return }
 
-    const { data: profile } = await supabase
+ const { data: profile } = await supabase
       .from('profiles')
       .select('status, role')
       .eq('id', user.id)
-      .single()
+      .single() as { data: any; error: any }
 
     if (!profile || profile.status !== 'approved') {
       window.location.href = '/pendente'
