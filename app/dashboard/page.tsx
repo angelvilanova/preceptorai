@@ -22,9 +22,18 @@ const PROTOCOLS_QUICK = [
 ]
 
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: 'chat',  label: 'Chat clínico', icon: <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4"><path d="M2 3h12v8H9l-3 2V11H2V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg> },
-  { id: 'calc',  label: 'Calculadora',  icon: <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> },
-  { id: 'proto', label: 'Protocolos',   icon: <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4"><path d="M4 4h8M4 7h8M4 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="1.3"/></svg> },
+  {
+    id: 'chat', label: 'Chat',
+    icon: <svg viewBox="0 0 16 16" fill="none" className="w-5 h-5"><path d="M2 3h12v8H9l-3 2V11H2V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>
+  },
+  {
+    id: 'calc', label: 'Calcular',
+    icon: <svg viewBox="0 0 16 16" fill="none" className="w-5 h-5"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+  },
+  {
+    id: 'proto', label: 'Protocolos',
+    icon: <svg viewBox="0 0 16 16" fill="none" className="w-5 h-5"><path d="M4 4h8M4 7h8M4 10h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><rect x="1.5" y="1.5" width="13" height="13" rx="2" stroke="currentColor" strokeWidth="1.3"/></svg>
+  },
 ]
 
 export default function DashboardPage() {
@@ -33,30 +42,19 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [checking, setChecking] = useState(true)
   const [quickProto, setQuickProto] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        window.location.href = '/login'
-        return
-      }
+      if (!user) { window.location.href = '/login'; return }
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from('profiles').select('*').eq('id', user.id)
         .single() as { data: any; error: any }
 
-      if (error || !data) {
-        window.location.href = '/pendente'
-        return
-      }
-
-      if (data.status !== 'approved') {
-        window.location.href = '/pendente'
-        return
+      if (error || !data || data.status !== 'approved') {
+        window.location.href = '/pendente'; return
       }
 
       setProfile(data)
@@ -73,6 +71,7 @@ export default function DashboardPage() {
   function openQuickProto(id: string) {
     setTab('proto')
     setQuickProto(id)
+    setSidebarOpen(false)
   }
 
   if (checking) {
@@ -93,19 +92,41 @@ export default function DashboardPage() {
     <AmbienteProvider>
       <div className="flex h-screen bg-[#f7f6f3] overflow-hidden">
 
-        {/* SIDEBAR */}
-        <aside className="w-52 min-w-[208px] bg-white border-r border-[#e2e0d8] flex flex-col overflow-hidden">
+        {/* OVERLAY mobile */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/40 z-20 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* SIDEBAR — hidden on mobile, drawer on tap */}
+        <aside className={`
+          fixed md:relative z-30 md:z-auto
+          w-64 md:w-52 h-full
+          bg-white border-r border-[#e2e0d8]
+          flex flex-col overflow-hidden
+          transition-transform duration-200
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
           <div className="p-4 border-b border-[#e2e0d8] flex-shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-[#E24B4A] rounded-[9px] flex items-center justify-center flex-shrink-0">
-                <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5">
-                  <path d="M10 2v6M10 12v6M2 10h6M12 10h6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-[#E24B4A] rounded-[9px] flex items-center justify-center flex-shrink-0">
+                  <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5">
+                    <path d="M10 2v6M10 12v6M2 10h6M12 10h6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[13px] font-bold tracking-tight leading-none">PRECEPTOR.AI</div>
+                  <div className="text-[10px] text-[#aaa] mt-0.5">Copiloto de plantão</div>
+                </div>
+              </div>
+              <button onClick={() => setSidebarOpen(false)} className="md:hidden text-[#aaa] p-1">
+                <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
+                  <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                 </svg>
-              </div>
-              <div>
-                <div className="text-[13px] font-bold tracking-tight leading-none">PRECEPTOR.AI</div>
-                <div className="text-[10px] text-[#aaa] mt-0.5">Copiloto de plantão</div>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -114,26 +135,12 @@ export default function DashboardPage() {
             <AmbienteSwitcher />
           </div>
 
-          <nav className="px-2 pt-2 flex flex-col gap-0.5 flex-shrink-0">
-            <div className="text-[10px] text-[#bbb] uppercase tracking-widest px-2 pt-1 pb-1">Módulos</div>
-            {NAV_ITEMS.map(item => (
-              <button key={item.id} onClick={() => setTab(item.id)}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm w-full text-left transition-all ${
-                  tab === item.id
-                    ? 'bg-[#f7f6f3] text-[#1a1a1a] font-semibold'
-                    : 'text-[#666] hover:bg-[#f7f6f3] hover:text-[#1a1a1a]'
-                }`}>
-                {item.icon}{item.label}
-              </button>
-            ))}
-          </nav>
-
           <div className="px-2 pb-2 flex-1 overflow-y-auto">
             <div className="text-[10px] text-[#bbb] uppercase tracking-widest px-2 pt-3 pb-1">Acesso rápido</div>
             {PROTOCOLS_QUICK.map(p => (
               <button key={p.id} onClick={() => openQuickProto(p.id)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-[#666] hover:bg-[#f7f6f3] hover:text-[#1a1a1a] w-full text-left transition-all">
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#666] hover:bg-[#f7f6f3] hover:text-[#1a1a1a] w-full text-left transition-all">
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
                 {p.label}
               </button>
             ))}
@@ -159,8 +166,28 @@ export default function DashboardPage() {
         </aside>
 
         {/* MAIN */}
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex border-b border-[#e2e0d8] bg-white px-4 flex-shrink-0">
+        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+
+          {/* HEADER mobile */}
+          <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-[#e2e0d8] md:hidden flex-shrink-0">
+            <button onClick={() => setSidebarOpen(true)} className="text-[#666] p-1">
+              <svg viewBox="0 0 16 16" fill="none" className="w-5 h-5">
+                <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-[#E24B4A] rounded-md flex items-center justify-center">
+                <svg viewBox="0 0 20 20" fill="none" className="w-4 h-4">
+                  <path d="M10 2v6M10 12v6M2 10h6M12 10h6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span className="text-sm font-bold">PRECEPTOR.AI</span>
+            </div>
+            <AmbienteSwitcher />
+          </div>
+
+          {/* TABS desktop */}
+          <div className="hidden md:flex border-b border-[#e2e0d8] bg-white px-4 flex-shrink-0">
             {NAV_ITEMS.map(item => (
               <button key={item.id} onClick={() => setTab(item.id)}
                 className={`px-4 py-3 text-sm transition-colors border-b-2 -mb-px ${
@@ -173,6 +200,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          {/* CONTENT */}
           <div className="flex-1 overflow-hidden">
             {tab === 'chat'  && <ChatModule />}
             {tab === 'calc'  && <CalcModule />}
@@ -183,6 +211,19 @@ export default function DashboardPage() {
               />
             )}
           </div>
+
+          {/* BOTTOM NAV mobile */}
+          <nav className="md:hidden flex border-t border-[#e2e0d8] bg-white flex-shrink-0">
+            {NAV_ITEMS.map(item => (
+              <button key={item.id} onClick={() => setTab(item.id)}
+                className={`flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-medium transition-colors ${
+                  tab === item.id ? 'text-[#E24B4A]' : 'text-[#aaa]'
+                }`}>
+                {item.icon}
+                {item.label}
+              </button>
+            ))}
+          </nav>
         </main>
       </div>
     </AmbienteProvider>
