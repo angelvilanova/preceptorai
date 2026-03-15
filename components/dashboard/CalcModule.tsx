@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 export function CalcModule() {
   return (
-    <div className="overflow-y-auto p-4 flex flex-col gap-4">
+        <div className="p-4 flex flex-col gap-4" style={{ overflowY: 'auto', height: '100%', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
       <VasoCalc />
       <SedacaoCalc />
       <InsulinaCalc />
